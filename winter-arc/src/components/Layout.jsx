@@ -28,7 +28,7 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-arc-panel border-t border-arc-muted/20 pb-safe">
+      <nav className="fixed bottom-0 left-0 right-0 bg-arc-panel border-t border-arc-muted/20 pb-[env(safe-area-inset-bottom)]">
         <div className="flex justify-around items-center h-16 max-w-md mx-auto">
           {navItems.map(({ to, icon: Icon, label }) => (
             <NavLink

@@ -130,7 +130,6 @@ export default function Journal() {
             <input 
               type="file" 
               accept="image/*"
-              capture="environment"
               className="hidden" 
               onChange={uploadPhoto} 
               disabled={uploading}
