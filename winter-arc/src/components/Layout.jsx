@@ -1,5 +1,6 @@
 import { Outlet, NavLink } from 'react-router-dom'
-import { CheckSquare, Settings, Book, BarChart3 } from 'lucide-react'
+import { CheckSquare, Settings, Book, BarChart3, LogOut } from 'lucide-react'
+import { supabase } from '../lib/supabase'
 
 export default function Layout() {
   const navItems = [
@@ -9,10 +10,18 @@ export default function Layout() {
     { to: '/habits', icon: Settings, label: 'Habits' },
   ]
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+  }
+
   return (
     <div className="min-h-screen bg-arc-bg text-arc-text pb-20">
-      <header className="px-4 py-4 border-b border-arc-panel flex justify-center items-center bg-black/80 backdrop-blur sticky top-0 z-10">
+      <header className="px-4 py-4 border-b border-arc-panel flex justify-between items-center bg-black/80 backdrop-blur sticky top-0 z-10">
+        <div className="w-8"></div> {/* Spacer for centering */}
         <h1 className="text-xl font-bold uppercase tracking-wider text-arc-text">Winter Arc</h1>
+        <button onClick={handleLogout} className="text-arc-muted hover:text-arc-red transition-colors" title="Switch Profile">
+          <LogOut size={20} />
+        </button>
       </header>
 
       <main className="max-w-md mx-auto w-full p-4">
