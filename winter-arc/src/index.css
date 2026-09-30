@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-arc-green: #39FF14;
+  --color-arc-amber: #FFBF00;
+  --color-arc-red: #FF003F;
+  --color-arc-bg: #000000;
+  --color-arc-panel: #111111;
+  --color-arc-text: #FFFFFF;
+  --color-arc-muted: #666666;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-arc-bg);
+    color: var(--color-arc-text);
+    @apply font-sans antialiased;
+  }
+}
