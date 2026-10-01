@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { format, subDays, eachDayOfInterval, isSameDay } from 'date-fns'
-import { Share2 } from 'lucide-react'
+import { Share2, X, Image as ImageIcon, ChevronRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import toast, { Toaster } from 'react-hot-toast'
 
@@ -8,7 +8,11 @@ export default function Progress() {
   const [logs, setLogs] = useState([])
   const [habitsCount, setHabitsCount] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [photos, setPhotos] = useState([])
+  const [galleryItems, setGalleryItems] = useState([])
+  const [selectedItem, setSelectedItem] = useState(null)
+  const [isTopdownViewOpen, setIsTopdownViewOpen] = useState(false)
+  const [isPasswordPromptOpen, setIsPasswordPromptOpen] = useState(false)
+  const [passwordInput, setPasswordInput] = useState('')
   const [currentStreak, setCurrentStreak] = useState(0)
   const shareRef = useRef(null)
 
@@ -41,14 +45,15 @@ export default function Progress() {
       
       setLogs(logsData)
       
-      // Calculate photos
-      const logsWithPhotos = logsData
-        .filter(l => l.photo_url)
+      // Calculate gallery items
+      const logsWithGallery = logsData
+        .filter(l => l.photo_url || l.journal_text)
         .map(l => ({
           date: l.log_date,
-          url: supabase.storage.from('winter-arc-photos').getPublicUrl(l.photo_url).data.publicUrl
+          url: l.photo_url ? supabase.storage.from('winter-arc-photos').getPublicUrl(l.photo_url).data.publicUrl : null,
+          journal_text: l.journal_text
         }))
-      setPhotos(logsWithPhotos)
+      setGalleryItems(logsWithGallery)
 
       // Calculate streak
       let streak = 0
@@ -135,16 +140,194 @@ export default function Progress() {
         </div>
       </div>
 
-      <h3 className="text-xl font-bold mb-4">Gallery</h3>
-      {photos.length === 0 ? (
-        <p className="text-arc-muted text-center py-8">No photos yet. Add one in Journal.</p>
+      <div className="flex items-center gap-2 mb-4">
+        <h3 className="text-xl font-bold">Gallery & Journal</h3>
+        <button 
+          onClick={() => {
+            setIsPasswordPromptOpen(true)
+            setPasswordInput('')
+          }}
+          className="p-1 rounded-full hover:bg-white/10 text-arc-muted transition-colors"
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
+
+      {galleryItems.length === 0 ? (
+        <p className="text-arc-muted text-center py-8">No entries yet. Add one in Journal.</p>
       ) : (
-        <div className="grid grid-cols-3 gap-2">
-          {photos.map(p => (
-            <div key={p.date} className="aspect-square bg-arc-panel rounded overflow-hidden">
-              <img src={p.url} alt={p.date} className="w-full h-full object-cover" />
-            </div>
+        <div className="grid grid-cols-3 gap-1">
+          {galleryItems.map(item => (
+            <button 
+              key={item.date} 
+              className="aspect-square bg-arc-panel rounded-md overflow-hidden relative cursor-pointer group text-left border-none w-full p-0"
+              onClick={() => setSelectedItem(item)}
+            >
+              {item.url ? (
+                <img src={item.url} alt={item.date} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center p-2 bg-arc-panel border border-arc-muted/10">
+                  <ImageIcon size={20} className="opacity-30 mb-2" />
+                  <p className="text-[10px] text-arc-muted text-center line-clamp-3">{item.journal_text}</p>
+                </div>
+              )}
+              {/* Sleek Dark Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-2 opacity-90 group-hover:opacity-100 transition-opacity pointer-events-none">
+                <span className="text-xs font-semibold text-white tracking-wide shadow-black drop-shadow-md">
+                  {format(new Date(item.date), 'MMM d')}
+                </span>
+              </div>
+            </button>
           ))}
+        </div>
+      )}
+
+      {/* Password Prompt Modal */}
+      {isPasswordPromptOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-arc-panel p-6 rounded-2xl w-full max-w-sm border border-white/10 shadow-2xl">
+            <h3 className="text-xl font-bold mb-4">Enter Password</h3>
+            <input 
+              type="password" 
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              onKeyDown={async (e) => {
+                if (e.key === 'Enter') {
+                  const { data: { user } } = await supabase.auth.getUser()
+                  if (!user) return
+                  
+                  let isValid = false
+                  if (user.email === 'arya@winterarc.com' && passwordInput === 'Hellobye@34') isValid = true
+                  if (user.email === 'anish@winterarc.com' && passwordInput === 'Hellobye@9') isValid = true
+
+                  if (isValid) {
+                    setIsPasswordPromptOpen(false)
+                    setPasswordInput('')
+                    setIsTopdownViewOpen(true)
+                  } else {
+                    toast.error("Incorrect password")
+                  }
+                }
+              }}
+              placeholder="Password..."
+              className="w-full bg-black/50 border border-white/10 rounded-xl p-3 mb-6 focus:outline-none focus:border-arc-green text-white"
+              autoFocus
+            />
+            <div className="flex gap-3">
+              <button 
+                onClick={() => {
+                  setIsPasswordPromptOpen(false)
+                  setPasswordInput('')
+                }}
+                className="flex-1 py-3 rounded-xl font-semibold bg-white/5 hover:bg-white/10 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={async () => {
+                  const { data: { user } } = await supabase.auth.getUser()
+                  if (!user) return
+                  
+                  let isValid = false
+                  if (user.email === 'arya@winterarc.com' && passwordInput === 'Hellobye@34') isValid = true
+                  if (user.email === 'anish@winterarc.com' && passwordInput === 'Hellobye@9') isValid = true
+
+                  if (isValid) {
+                    setIsPasswordPromptOpen(false)
+                    setPasswordInput('')
+                    setIsTopdownViewOpen(true)
+                  } else {
+                    toast.error("Incorrect password")
+                  }
+                }}
+                className="flex-1 py-3 rounded-xl font-bold bg-arc-text text-black hover:bg-arc-green transition-colors"
+              >
+                Unlock
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Topdown View Modal */}
+      {isTopdownViewOpen && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-[#0a0a0a] animate-in fade-in duration-200">
+          <div className="flex justify-between items-center p-4 pt-6 border-b border-white/10 bg-black/50 backdrop-blur-md sticky top-0 z-10">
+            <span className="text-lg font-bold text-white tracking-widest uppercase">Journal Feed</span>
+            <button 
+              onClick={() => setIsTopdownViewOpen(false)}
+              className="p-2 text-white/70 hover:text-white bg-white/5 rounded-full transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-8 pb-12">
+            {galleryItems.map((item, idx) => (
+              <div key={idx} className="bg-arc-panel rounded-xl overflow-hidden border border-white/5">
+                <div className="p-4 border-b border-white/5 bg-black/20">
+                  <h4 className="font-bold text-arc-text">{format(new Date(item.date), 'MMMM d, yyyy')}</h4>
+                </div>
+                {item.url && (
+                  <div className="w-full bg-black/40 flex justify-center border-b border-white/5">
+                    <img src={item.url} alt={item.date} className="max-h-[50vh] object-contain" />
+                  </div>
+                )}
+                {item.journal_text && (
+                  <div className="p-4">
+                    <details className="group">
+                      <summary className="text-sm font-semibold text-arc-green cursor-pointer select-none list-none flex items-center justify-between">
+                        <span>Read Journal</span>
+                        <span className="text-arc-muted group-open:rotate-180 transition-transform">▼</span>
+                      </summary>
+                      <div className="mt-3 text-white/90 text-sm whitespace-pre-wrap leading-relaxed">
+                        {item.journal_text}
+                      </div>
+                    </details>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Modal View */}
+      {selectedItem && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-black/95 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="flex justify-between items-center p-4 pt-6 border-b border-white/10">
+            <span className="text-lg font-bold text-white">{format(new Date(selectedItem.date), 'MMMM d, yyyy')}</span>
+            <button 
+              onClick={() => setSelectedItem(null)}
+              className="p-2 text-white/70 hover:text-white bg-white/5 rounded-full transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto pb-12">
+            {selectedItem.url && (
+               <div className="w-full bg-black/50 border-b border-white/5 flex items-center justify-center min-h-[40vh]">
+                 <img 
+                   src={selectedItem.url} 
+                   alt={selectedItem.date} 
+                   className="w-full h-auto max-h-[60vh] object-contain" 
+                 />
+               </div>
+            )}
+            
+            <div className="p-6 max-w-md mx-auto w-full">
+              {selectedItem.journal_text ? (
+                <div className="space-y-4">
+                  <h4 className="text-sm font-bold text-arc-green uppercase tracking-widest">Journal Entry</h4>
+                  <p className="text-white/90 text-lg leading-relaxed whitespace-pre-wrap font-medium">
+                    {selectedItem.journal_text}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-white/40 italic text-center mt-8">No journal text for this day.</p>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
