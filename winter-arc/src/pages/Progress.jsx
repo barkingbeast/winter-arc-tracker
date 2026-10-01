@@ -304,29 +304,22 @@ export default function Progress() {
             </button>
           </div>
           
-          <div className="flex-1 overflow-y-auto pb-12">
-            {selectedItem.url && (
-               <div className="w-full bg-black/50 border-b border-white/5 flex items-center justify-center min-h-[40vh]">
+          <div className="flex-1 overflow-hidden flex items-center justify-center p-4">
+            {selectedItem.url ? (
                  <img 
                    src={selectedItem.url} 
                    alt={selectedItem.date} 
-                   className="w-full h-auto max-h-[60vh] object-contain" 
+                   className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" 
                  />
-               </div>
-            )}
-            
-            <div className="p-6 max-w-md mx-auto w-full">
-              {selectedItem.journal_text ? (
-                <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-arc-green uppercase tracking-widest">Journal Entry</h4>
-                  <p className="text-white/90 text-lg leading-relaxed whitespace-pre-wrap font-medium">
+            ) : (
+              <div className="p-6 max-w-md w-full overflow-y-auto max-h-full">
+                {selectedItem.journal_text && (
+                  <p className="text-white/90 text-lg leading-relaxed whitespace-pre-wrap font-medium text-center">
                     {selectedItem.journal_text}
                   </p>
-                </div>
-              ) : (
-                <p className="text-white/40 italic text-center mt-8">No journal text for this day.</p>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
