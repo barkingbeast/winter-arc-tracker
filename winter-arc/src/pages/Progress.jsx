@@ -197,8 +197,8 @@ export default function Progress() {
                   if (!user) return
                   
                   let isValid = false
-                  if (user.email === 'arya@winterarc.com' && passwordInput === 'Hellobye@34') isValid = true
-                  if (user.email === 'anish@winterarc.com' && passwordInput === 'Hellobye@9') isValid = true
+                  if (user.email === 'arya@winterarc.com' && passwordInput === import.meta.env.VITE_ARYA_PASSWORD) isValid = true
+                  if (user.email === 'anish@winterarc.com' && passwordInput === import.meta.env.VITE_ANISH_PASSWORD) isValid = true
 
                   if (isValid) {
                     setIsPasswordPromptOpen(false)
@@ -229,8 +229,8 @@ export default function Progress() {
                   if (!user) return
                   
                   let isValid = false
-                  if (user.email === 'arya@winterarc.com' && passwordInput === 'Hellobye@34') isValid = true
-                  if (user.email === 'anish@winterarc.com' && passwordInput === 'Hellobye@9') isValid = true
+                  if (user.email === 'arya@winterarc.com' && passwordInput === import.meta.env.VITE_ARYA_PASSWORD) isValid = true
+                  if (user.email === 'anish@winterarc.com' && passwordInput === import.meta.env.VITE_ANISH_PASSWORD) isValid = true
 
                   if (isValid) {
                     setIsPasswordPromptOpen(false)
