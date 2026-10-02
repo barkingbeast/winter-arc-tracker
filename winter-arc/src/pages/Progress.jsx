@@ -4,6 +4,14 @@ import { Share2, X, Image as ImageIcon, ChevronRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import toast, { Toaster } from 'react-hot-toast'
 
+const hashPassword = async (password) => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export default function Progress() {
   const [logs, setLogs] = useState([])
   const [habitsCount, setHabitsCount] = useState(0)
@@ -196,9 +204,10 @@ export default function Progress() {
                   const { data: { user } } = await supabase.auth.getUser()
                   if (!user) return
                   
+                  const hashedInput = await hashPassword(passwordInput)
                   let isValid = false
-                  if (user.email === 'arya@winterarc.com' && passwordInput === atob('MjM=')) isValid = true
-                  if (user.email === 'anish@winterarc.com' && passwordInput === atob('ODI=')) isValid = true
+                  if (user.email === 'arya@winterarc.com' && hashedInput === '535fa30d7e25dd8a49f1536779734ec8286108d115da5045d77f3b4185d8f790') isValid = true
+                  if (user.email === 'anish@winterarc.com' && hashedInput === 'a46e37632fa6ca51a13fe39a567b3c23b28c2f47d8af6be9bd63e030e214ba38') isValid = true
 
                   if (isValid) {
                     setIsPasswordPromptOpen(false)
@@ -228,9 +237,10 @@ export default function Progress() {
                   const { data: { user } } = await supabase.auth.getUser()
                   if (!user) return
                   
+                  const hashedInput = await hashPassword(passwordInput)
                   let isValid = false
-                  if (user.email === 'arya@winterarc.com' && passwordInput === atob('MjM=')) isValid = true
-                  if (user.email === 'anish@winterarc.com' && passwordInput === atob('ODI=')) isValid = true
+                  if (user.email === 'arya@winterarc.com' && hashedInput === '535fa30d7e25dd8a49f1536779734ec8286108d115da5045d77f3b4185d8f790') isValid = true
+                  if (user.email === 'anish@winterarc.com' && hashedInput === 'a46e37632fa6ca51a13fe39a567b3c23b28c2f47d8af6be9bd63e030e214ba38') isValid = true
 
                   if (isValid) {
                     setIsPasswordPromptOpen(false)
